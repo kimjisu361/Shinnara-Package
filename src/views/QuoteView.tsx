@@ -12,7 +12,8 @@ import {
   Check,
   AlertCircle,
   UploadCloud,
-  FileCheck
+  FileCheck,
+  Loader2
 } from 'lucide-react';
 
 interface QuoteViewProps {
@@ -42,7 +43,9 @@ export const QuoteView: React.FC<QuoteViewProps> = ({
     agreePrivacy: false,
   });
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedFileName, setSelectedFileName] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -151,12 +154,17 @@ export const QuoteView: React.FC<QuoteViewProps> = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       setSelectedFileName(file.name);
       setFormData(prev => ({ ...prev, fileNote: `${file.name} (${Math.round(file.size / 1024)} KB)` }));
+    } else {
+      setSelectedFile(null);
+      setSelectedFileName('');
+      setFormData(prev => ({ ...prev, fileNote: '' }));
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
@@ -185,20 +193,59 @@ export const QuoteView: React.FC<QuoteViewProps> = ({
       return;
     }
 
-    // Save inquiry to localStorage for client-side persistence
-    try {
-      const existing = JSON.parse(localStorage.getItem('sinnara_inquiries') || '[]');
-      existing.push({
-        ...formData,
-        submittedAt: new Date().toISOString(),
-      });
-      localStorage.setItem('sinnara_inquiries', JSON.stringify(existing));
-    } catch {
-      // ignore storage error
-    }
+    setIsSubmitting(true);
 
-    setIsSubmitted(true);
-    window.scrollTo({ top: 300, behavior: 'smooth' });
+    try {
+      // Prepare form data for Netlify Forms
+      const netlifyData = new FormData();
+      netlifyData.append('form-name', 'quote-form');
+      netlifyData.append('companyName', formData.companyName.trim());
+      netlifyData.append('contactName', formData.contactName.trim());
+      netlifyData.append('phone', formData.phone.trim());
+      netlifyData.append('email', formData.email.trim());
+      netlifyData.append('goodsType', formData.goodsType.trim());
+      netlifyData.append('estimatedQuantity', formData.estimatedQuantity.trim());
+      netlifyData.append('goodsSize', formData.goodsSize.trim());
+      netlifyData.append('packagingMethod', formData.packagingMethod.trim());
+      netlifyData.append('materialReady', formData.materialReady);
+      netlifyData.append('targetSchedule', formData.targetSchedule.trim());
+      netlifyData.append('additionalRequests', formData.additionalRequests.trim());
+      netlifyData.append('agreePrivacy', formData.agreePrivacy ? '동의함' : '미동의');
+      if (selectedFile) {
+        netlifyData.append('file', selectedFile);
+      }
+
+      const response = await fetch('/', {
+        method: 'POST',
+        body: netlifyData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Netlify form error (HTTP ${response.status})`);
+      }
+
+      // Save inquiry to localStorage for client-side persistence backup
+      try {
+        const existing = JSON.parse(localStorage.getItem('sinnara_inquiries') || '[]');
+        existing.push({
+          ...formData,
+          submittedAt: new Date().toISOString(),
+        });
+        localStorage.setItem('sinnara_inquiries', JSON.stringify(existing));
+      } catch {
+        // ignore storage error
+      }
+
+      setIsSubmitted(true);
+      window.scrollTo({ top: 300, behavior: 'smooth' });
+    } catch (err) {
+      console.error('Netlify submission failed:', err);
+      setErrorMessage(
+        '견적 접수 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주시거나 카카오톡(1:1 채팅) 또는 대표전화(010-4591-0334)로 직접 문의해 주시기 바랍니다.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const generateInquirySummary = () => {
@@ -496,7 +543,26 @@ export const QuoteView: React.FC<QuoteViewProps> = ({
                   <span>{copied ? '클립보드에 복사됨' : '견적 내용 텍스트 복사하기'}</span>
                 </button>
                 <button
-                  onClick={() => setIsSubmitted(false)}
+                  onClick={() => {
+                    setIsSubmitted(false);
+                    setSelectedFile(null);
+                    setSelectedFileName('');
+                    setFormData({
+                      companyName: '',
+                      contactName: '',
+                      phone: '',
+                      email: '',
+                      goodsType: '',
+                      estimatedQuantity: '',
+                      goodsSize: '',
+                      packagingMethod: '',
+                      materialReady: 'needConsult',
+                      targetSchedule: '',
+                      fileNote: '',
+                      additionalRequests: '',
+                      agreePrivacy: false,
+                    });
+                  }}
                   className="px-5 py-2.5 bg-white border border-[#E8E3F0] text-[#777180] rounded-lg text-xs font-medium hover:bg-[#F7F4FF]"
                 >
                   새로운 문의 작성하기
@@ -504,7 +570,21 @@ export const QuoteView: React.FC<QuoteViewProps> = ({
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form
+              name="quote-form"
+              method="POST"
+              data-netlify="true"
+              data-netlify-honeypot="bot-field"
+              onSubmit={handleSubmit}
+              className="space-y-8"
+            >
+              {/* Netlify Forms Hidden Identification and Honeypot */}
+              <input type="hidden" name="form-name" value="quote-form" />
+              <div className="hidden">
+                <label>
+                  스팸 방지 필드 <input name="bot-field" />
+                </label>
+              </div>
               {errorMessage && (
                 <div className="p-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
@@ -681,6 +761,7 @@ export const QuoteView: React.FC<QuoteViewProps> = ({
                   <label className="border-2 border-dashed border-[#B8A1F7]/40 hover:border-[#8B6CF6] rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer bg-[#F7F4FF]/30 transition-colors">
                     <input
                       type="file"
+                      name="file"
                       onChange={handleFileChange}
                       className="hidden"
                       accept="image/*,.pdf,.zip"
@@ -741,10 +822,20 @@ export const QuoteView: React.FC<QuoteViewProps> = ({
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-4 bg-[#8B6CF6] hover:bg-[#7854f3] active:bg-[#6842e4] text-white font-bold rounded-xl shadow-sm hover:shadow transition-all text-sm sm:text-base flex items-center justify-center gap-2 group focus:outline-none focus:ring-2 focus:ring-[#8B6CF6]/40"
+                  disabled={isSubmitting}
+                  className="w-full py-4 bg-[#8B6CF6] hover:bg-[#7854f3] active:bg-[#6842e4] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-sm hover:shadow transition-all text-sm sm:text-base flex items-center justify-center gap-2 group focus:outline-none focus:ring-2 focus:ring-[#8B6CF6]/40"
                 >
-                  <span>견적 문의 접수하기</span>
-                  <Send className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>견적 접수 전송 중...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>견적 문의 접수하기</span>
+                      <Send className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    </>
+                  )}
                 </button>
               </div>
             </form>
