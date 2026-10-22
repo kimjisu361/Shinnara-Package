@@ -1,6 +1,6 @@
 {
-  "name": "신나라패키지 | SINNARA PACKAGE",
-  "description": "LAVENDER GOODS PACKAGING STUDIO — 포토카드부터 앨범 특전과 굿즈 세트까지, 아이돌 굿즈 포장 전문 서비스",
+  "name": "신나라패키지 | 아이돌 굿즈 및 각종 굿즈 포장 전문",
+  "description": "신나라패키지는 아이돌 굿즈를 비롯한 다양한 굿즈의 포장을 전문으로 상담하는 업체입니다. 다양한 굿즈 포장 관련 문의를 환영합니다.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
