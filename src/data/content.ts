@@ -31,6 +31,9 @@ export const BRAND_INFO = {
     car: '경인고속도로 부평IC 진출 3분 거리 (방문객 및 화물 하역 전용 주차 공간 완비)',
     bus: '부평세관 / 인천테크노밸리U1센터 정류장 하차',
     goodsDelivery: '대량 굿즈 입고 화물차량 D동 전용 하역장 진입 및 화물 엘리베이터 이용 가능',
+    email: 'ares361@naver.com',
+    phone: '010-4591-0334',
+    tel: 'tel:01045910334',
     naverMapUrl: 'https://map.naver.com/p/search/%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C%20%EB%B6%80%ED%8F%89%EA%B5%AC%20%EA%B0%88%EC%82%B0%EB%8F%99%2094',
     kakaoMapUrl: 'https://map.kakao.com/link/search/%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C%20%EB%B6%80%ED%8F%89%EA%B5%AC%20%EA%B0%88%EC%82%B0%EB%8F%99%2094%20%EC%9D%B8%EC%B2%9C%ED%85%8C%ED%81%AC%EB%85%B8%EB%B0%B8%EB%A6%ACU1%EC%84%BC%ED%84%B0'
   }
@@ -210,25 +213,27 @@ export const PROCESS_STEPS = [
 export const CONTACT_CHANNELS = {
   phone: {
     label: '전화 문의',
-    value: '010-XXXX-XXXX',
+    value: '010-4591-0334',
+    tel: 'tel:01045910334',
     note: '상담 가능 시간: 평일 10:00 - 18:00 (점심시간 12:30 - 13:30)',
-    isPlaceholder: true,
-    instruction: '실제 운영 전화번호로 바로 변경하실 수 있습니다.'
+    isPlaceholder: false,
+    instruction: '모바일 클릭 시 바로 전화 연결, PC 클릭 시 번호가 복사됩니다.'
   },
   kakao: {
     label: '카카오톡 문의',
-    value: '@신나라패키지 (카카오톡 채널)',
-    note: '실시간 채팅 상담 및 사진 전송 문의',
-    isPlaceholder: true,
-    link: '#',
-    instruction: '카카오톡 채널 개설 후 링크를 연결해 주세요.'
+    value: '신나라패키지 카카오톡 채널',
+    link: 'http://pf.kakao.com/_CXxcmX',
+    note: '실시간 1:1 채팅 상담 및 사진 전송 문의',
+    isPlaceholder: false,
+    instruction: '클릭 시 카카오톡 채널 1:1 상담 채팅으로 즉시 연결됩니다.'
   },
   email: {
     label: '이메일 문의',
-    value: 'contact@sinnarapackage.com',
+    value: 'ares361@naver.com',
+    mailto: 'mailto:ares361@naver.com?subject=%5B%EC%8B%A0%EB%82%98%EB%9D%BC%ED%8C%A8%ED%82%A4%EC%A7%80%5D%20%EC%95%84%EC%9D%B4%EB%8F%8C%20%EA%B5%BF%EC%A6%88%20%ED%8F%AC%EC%9E%A5%20%EA%B2%AC%EC%A0%81%20%EB%B0%8F%20%EC%9E%91%EC%97%85%20%EB%AC%B8%EC%9D%98',
     note: '대량 주문서 및 견적 요청서 파일 첨부 문의',
-    isPlaceholder: true,
-    instruction: '실제 공식 이메일 주소로 교체 가능합니다.'
+    isPlaceholder: false,
+    instruction: '클릭 시 ares361@naver.com 주소가 클립보드에 복사됩니다.'
   },
   googleForm: {
     label: 'Google Forms 연결',

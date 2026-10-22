@@ -16,20 +16,31 @@ import { LocationView } from './views/LocationView';
 import { QuoteView } from './views/QuoteView';
 import { AssetManagerModal } from './components/AssetManagerModal';
 import { GoogleSitesGuideModal } from './components/GoogleSitesGuideModal';
+import { KakaoChatButton } from './components/KakaoChatButton';
+import { KakaoConfigModal } from './components/KakaoConfigModal';
 import { ArrowUpRight } from 'lucide-react';
+
+const DEFAULT_KAKAO_URL = 'http://pf.kakao.com/_CXxcmX';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<PageTab>('home');
   const [isAssetModalOpen, setIsAssetModalOpen] = useState<boolean>(false);
   const [isGoogleSitesModalOpen, setIsGoogleSitesModalOpen] = useState<boolean>(false);
-  const [customAssets, setCustomAssets] = useState<CustomAssets>({});
+  const [isKakaoModalOpen, setIsKakaoModalOpen] = useState<boolean>(false);
+  const [customAssets, setCustomAssets] = useState<CustomAssets>({
+    kakaoChannelUrl: DEFAULT_KAKAO_URL,
+  });
 
   // Load any previously saved custom assets (logo, puppy, hero)
   useEffect(() => {
     try {
       const saved = localStorage.getItem('sinnara_assets');
       if (saved) {
-        setCustomAssets(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setCustomAssets({
+          kakaoChannelUrl: parsed.kakaoChannelUrl || DEFAULT_KAKAO_URL,
+          ...parsed,
+        });
       }
     } catch {
       // ignore
@@ -85,7 +96,11 @@ export default function App() {
         )}
 
         {currentTab === 'quote' && (
-          <QuoteView onOpenGoogleSitesGuide={() => setIsGoogleSitesModalOpen(true)} />
+          <QuoteView
+            onOpenGoogleSitesGuide={() => setIsGoogleSitesModalOpen(true)}
+            kakaoChannelUrl={customAssets.kakaoChannelUrl}
+            onOpenKakaoConfig={() => setIsKakaoModalOpen(true)}
+          />
         )}
       </main>
 
@@ -96,7 +111,28 @@ export default function App() {
         onOpenAssetManager={() => setIsAssetModalOpen(true)}
       />
 
+      {/* Floating KakaoTalk 1:1 Consultation Button (Responsive PC & Mobile) */}
+      <KakaoChatButton
+        kakaoChannelUrl={customAssets.kakaoChannelUrl}
+        onOpenConfig={() => setIsKakaoModalOpen(true)}
+      />
+
       {/* Modals */}
+      <KakaoConfigModal
+        isOpen={isKakaoModalOpen}
+        onClose={() => setIsKakaoModalOpen(false)}
+        currentUrl={customAssets.kakaoChannelUrl}
+        onSaveUrl={(url) => {
+          const updated = { ...customAssets, kakaoChannelUrl: url };
+          setCustomAssets(updated);
+          try {
+            localStorage.setItem('sinnara_assets', JSON.stringify(updated));
+          } catch {
+            // ignore
+          }
+        }}
+      />
+
       <AssetManagerModal
         isOpen={isAssetModalOpen}
         onClose={() => setIsAssetModalOpen(false)}

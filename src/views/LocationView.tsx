@@ -111,6 +111,25 @@ export const LocationView: React.FC<LocationViewProps> = ({ onNavigate }) => {
                   <span className="text-[#777180] font-medium mr-1.5">우편번호:</span>
                   <span className="font-mono text-[#292532]">{BRAND_INFO.business.postalCode}</span>
                 </div>
+                <div>
+                  <span className="text-[#777180] font-medium mr-1.5">상담전화:</span>
+                  <a
+                    href="tel:01045910334"
+                    className="font-mono font-bold text-[#292532] hover:text-[#8B6CF6] hover:underline"
+                    title="전화 걸기"
+                  >
+                    010-4591-0334
+                  </a>
+                </div>
+                <div>
+                  <span className="text-[#777180] font-medium mr-1.5">이메일:</span>
+                  <a
+                    href="mailto:ares361@naver.com?subject=%5B%EC%8B%A0%EB%82%98%EB%9D%BC%ED%8C%A8%ED%82%A4%EC%A7%80%5D%20%EA%B5%BF%EC%A6%88%20%ED%8F%AC%EC%9E%A5%20%EA%B2%AC%EC%A0%81%20%EB%AC%B8%EC%9D%98"
+                    className="font-mono font-semibold text-[#514078] hover:text-[#8B6CF6] hover:underline"
+                  >
+                    ares361@naver.com
+                  </a>
+                </div>
               </div>
             </div>
 

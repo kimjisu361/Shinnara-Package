@@ -17,9 +17,15 @@ import {
 
 interface QuoteViewProps {
   onOpenGoogleSitesGuide: () => void;
+  kakaoChannelUrl?: string;
+  onOpenKakaoConfig?: () => void;
 }
 
-export const QuoteView: React.FC<QuoteViewProps> = ({ onOpenGoogleSitesGuide }) => {
+export const QuoteView: React.FC<QuoteViewProps> = ({
+  onOpenGoogleSitesGuide,
+  kakaoChannelUrl,
+  onOpenKakaoConfig,
+}) => {
   const [formData, setFormData] = useState<QuoteFormData>({
     companyName: '',
     contactName: '',
@@ -40,6 +46,95 @@ export const QuoteView: React.FC<QuoteViewProps> = ({ onOpenGoogleSitesGuide }) 
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [emailCopyStatus, setEmailCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
+
+  const handleCopyEmail = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const emailToCopy = CONTACT_CHANNELS.email.value; // 'ares361@naver.com'
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(emailToCopy)
+        .then(() => {
+          setEmailCopyStatus('copied');
+          setTimeout(() => setEmailCopyStatus('idle'), 2500);
+        })
+        .catch(() => {
+          fallbackCopyEmail(emailToCopy);
+        });
+    } else {
+      fallbackCopyEmail(emailToCopy);
+    }
+  };
+
+  const fallbackCopyEmail = (text: string) => {
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      if (successful) {
+        setEmailCopyStatus('copied');
+        setTimeout(() => setEmailCopyStatus('idle'), 2500);
+        return;
+      }
+    } catch {
+      // ignore
+    }
+    setEmailCopyStatus('failed');
+    setTimeout(() => setEmailCopyStatus('idle'), 4000);
+  };
+
+  const [phoneCopyStatus, setPhoneCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
+
+  const handleCopyPhone = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const phoneToCopy = CONTACT_CHANNELS.phone.value; // '010-4591-0334'
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(phoneToCopy)
+        .then(() => {
+          setPhoneCopyStatus('copied');
+          setTimeout(() => setPhoneCopyStatus('idle'), 2500);
+        })
+        .catch(() => {
+          fallbackCopyPhone(phoneToCopy);
+        });
+    } else {
+      fallbackCopyPhone(phoneToCopy);
+    }
+  };
+
+  const fallbackCopyPhone = (text: string) => {
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      if (successful) {
+        setPhoneCopyStatus('copied');
+        setTimeout(() => setPhoneCopyStatus('idle'), 2500);
+        return;
+      }
+    } catch {
+      // ignore
+    }
+    setPhoneCopyStatus('failed');
+    setTimeout(() => setPhoneCopyStatus('idle'), 4000);
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -171,17 +266,69 @@ export const QuoteView: React.FC<QuoteViewProps> = ({ onOpenGoogleSitesGuide }) 
                     <Phone className="w-4 h-4" />
                     <span className="text-xs font-bold text-[#292532]">{CONTACT_CHANNELS.phone.label}</span>
                   </div>
-                  <span className="text-[10px] font-mono text-slate-400">교체용</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 font-semibold">
+                    상담 전화
+                  </span>
                 </div>
-                <div className="text-sm font-semibold text-[#514078] mb-1 font-mono">
+
+                {/* Clickable phone number: calls on mobile, easy to click on PC */}
+                <a
+                  href="tel:01045910334"
+                  className="text-sm font-bold text-[#292532] hover:text-[#8B6CF6] mb-1 font-mono block transition-colors select-all cursor-pointer"
+                  title="모바일에서 클릭 시 바로 전화 연결"
+                >
                   {CONTACT_CHANNELS.phone.value}
-                </div>
+                </a>
+
                 <div className="text-[11px] text-[#777180] leading-tight">
                   {CONTACT_CHANNELS.phone.note}
                 </div>
+
+                {/* Copy success feedback message */}
+                {phoneCopyStatus === 'copied' && (
+                  <div className="mt-2.5 py-1 px-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-medium flex items-center gap-1.5 animate-in fade-in duration-200">
+                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>전화번호가 복사되었습니다.</span>
+                  </div>
+                )}
+
+                {/* Copy fail/unsupported feedback message */}
+                {phoneCopyStatus === 'failed' && (
+                  <div className="mt-2.5 py-1.5 px-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] leading-tight flex items-start gap-1.5 animate-in fade-in duration-200">
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                    <span>위 전화번호(010-4591-0334)를 직접 복사해 주세요.</span>
+                  </div>
+                )}
               </div>
-              <div className="mt-3 pt-3 border-t border-[#E8E3F0] text-[10px] text-[#8B6CF6]">
-                {CONTACT_CHANNELS.phone.instruction}
+
+              {/* Action row: Phone call on mobile & Copy button on PC/Mobile */}
+              <div className="mt-3 pt-3 border-t border-[#E8E3F0] flex items-center justify-between text-[11px]">
+                <a
+                  href="tel:01045910334"
+                  className="font-semibold text-[#8B6CF6] hover:text-[#7854f3] flex items-center gap-1 transition-colors"
+                  title="전화 걸기"
+                >
+                  <span>전화 걸기</span>
+                  <span className="font-mono">↗</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={handleCopyPhone}
+                  className="text-[#777180] hover:text-[#514078] font-mono flex items-center gap-1 transition-colors focus:outline-none"
+                  title="전화번호 클립보드 복사"
+                >
+                  {phoneCopyStatus === 'copied' ? (
+                    <span className="text-emerald-700 font-bold flex items-center gap-0.5">
+                      <Check className="w-3 h-3 text-emerald-600" />
+                      <span>복사됨</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-0.5">
+                      <Copy className="w-3 h-3" />
+                      <span>번호 복사</span>
+                    </span>
+                  )}
+                </button>
               </div>
             </div>
 
@@ -193,18 +340,33 @@ export const QuoteView: React.FC<QuoteViewProps> = ({ onOpenGoogleSitesGuide }) 
                     <MessageCircle className="w-4 h-4" />
                     <span className="text-xs font-bold text-[#292532]">{CONTACT_CHANNELS.kakao.label}</span>
                   </div>
-                  <span className="text-[10px] font-mono text-slate-400">교체용</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 font-semibold">
+                    공식 채널
+                  </span>
                 </div>
-                <div className="text-sm font-semibold text-[#514078] mb-1">
+                <a
+                  href={kakaoChannelUrl || CONTACT_CHANNELS.kakao.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-semibold text-[#514078] hover:text-[#8B6CF6] mb-1 block transition-colors cursor-pointer"
+                  title="신나라패키지 카카오톡 1:1 채팅 열기"
+                >
                   {CONTACT_CHANNELS.kakao.value}
-                </div>
+                </a>
                 <div className="text-[11px] text-[#777180] leading-tight">
                   {CONTACT_CHANNELS.kakao.note}
                 </div>
               </div>
-              <div className="mt-3 pt-3 border-t border-[#E8E3F0] text-[10px] text-[#8B6CF6]">
-                {CONTACT_CHANNELS.kakao.instruction}
-              </div>
+              <a
+                href={kakaoChannelUrl || CONTACT_CHANNELS.kakao.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 pt-3 border-t border-[#E8E3F0] text-[11px] text-[#8B6CF6] font-semibold text-left hover:underline flex items-center justify-between"
+                title="카카오톡 1:1 상담 채팅 바로가기"
+              >
+                <span>1:1 채팅 상담 바로가기</span>
+                <span>↗</span>
+              </a>
             </div>
 
             {/* Email */}
@@ -215,18 +377,67 @@ export const QuoteView: React.FC<QuoteViewProps> = ({ onOpenGoogleSitesGuide }) 
                     <Mail className="w-4 h-4" />
                     <span className="text-xs font-bold text-[#292532]">{CONTACT_CHANNELS.email.label}</span>
                   </div>
-                  <span className="text-[10px] font-mono text-slate-400">교체용</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 font-semibold">
+                    공식 이메일
+                  </span>
                 </div>
-                <div className="text-sm font-semibold text-[#514078] mb-1 font-mono">
-                  {CONTACT_CHANNELS.email.value}
-                </div>
+
+                {/* Clickable email address: copies to clipboard */}
+                <button
+                  type="button"
+                  onClick={handleCopyEmail}
+                  className="w-full text-left group focus:outline-none mb-1"
+                  title="클릭하여 이메일 주소 복사하기"
+                >
+                  <span className="text-sm font-semibold text-[#514078] group-hover:text-[#8B6CF6] font-mono block select-all transition-colors cursor-pointer">
+                    {CONTACT_CHANNELS.email.value}
+                  </span>
+                </button>
+
                 <div className="text-[11px] text-[#777180] leading-tight">
                   {CONTACT_CHANNELS.email.note}
                 </div>
+
+                {/* Copy success feedback message */}
+                {emailCopyStatus === 'copied' && (
+                  <div className="mt-2.5 py-1 px-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-medium flex items-center gap-1.5 animate-in fade-in duration-200">
+                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>이메일 주소가 복사되었습니다.</span>
+                  </div>
+                )}
+
+                {/* Copy fail/unsupported feedback message */}
+                {emailCopyStatus === 'failed' && (
+                  <div className="mt-2.5 py-1.5 px-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] leading-tight flex items-start gap-1.5 animate-in fade-in duration-200">
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                    <span>클립보드 복사를 지원하지 않는 환경입니다. 위 이메일 주소를 직접 선택해서 복사해 주세요.</span>
+                  </div>
+                )}
               </div>
-              <div className="mt-3 pt-3 border-t border-[#E8E3F0] text-[10px] text-[#8B6CF6]">
-                {CONTACT_CHANNELS.email.instruction}
-              </div>
+
+              {/* '이메일 주소 복사하기' Button */}
+              <button
+                type="button"
+                onClick={handleCopyEmail}
+                className="mt-3 pt-3 border-t border-[#E8E3F0] text-[11px] text-[#8B6CF6] hover:text-[#7854f3] font-semibold text-left flex items-center justify-between group transition-colors focus:outline-none"
+              >
+                <span className="flex items-center gap-1.5">
+                  {emailCopyStatus === 'copied' ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="text-emerald-700 font-bold">이메일 주소가 복사되었습니다.</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                      <span>이메일 주소 복사하기</span>
+                    </>
+                  )}
+                </span>
+                <span className="text-[10px] text-[#777180] font-mono group-hover:translate-x-0.5 transition-transform">
+                  COPY
+                </span>
+              </button>
             </div>
 
             {/* Google Forms Connection */}

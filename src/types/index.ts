@@ -41,4 +41,5 @@ export interface CustomAssets {
   logoImage?: string;
   puppyImage?: string;
   heroImage?: string;
+  kakaoChannelUrl?: string;
 }

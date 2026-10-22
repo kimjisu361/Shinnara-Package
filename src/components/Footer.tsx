@@ -60,6 +60,27 @@ export const Footer: React.FC<FooterProps> = ({
                 </div>
               </div>
 
+              <div className="flex items-center gap-2 pt-0.5">
+                <span className="text-[#777180] font-medium shrink-0">상담 전화:</span>
+                <a
+                  href="tel:01045910334"
+                  className="font-mono font-bold text-[#292532] hover:text-[#8B6CF6] hover:underline"
+                  title="모바일에서 클릭 시 전화 연결"
+                >
+                  010-4591-0334
+                </a>
+              </div>
+
+              <div className="flex items-center gap-2 pt-0.5">
+                <span className="text-[#777180] font-medium shrink-0">이메일 문의:</span>
+                <a
+                  href="mailto:ares361@naver.com?subject=%5B%EC%8B%A0%EB%82%98%EB%9D%BC%ED%8C%A8%ED%82%A4%EC%A7%80%5D%20%EA%B5%BF%EC%A6%88%20%ED%8F%AC%EC%9E%A5%20%EA%B2%AC%EC%A0%81%20%EB%AC%B8%EC%9D%98"
+                  className="font-mono font-medium text-[#514078] hover:text-[#8B6CF6] hover:underline"
+                >
+                  ares361@naver.com
+                </a>
+              </div>
+
               {/* Quick Action Buttons for Address */}
               <div className="pt-2 flex items-center gap-2 flex-wrap">
                 <button
@@ -170,6 +191,21 @@ export const Footer: React.FC<FooterProps> = ({
             © {new Date().getFullYear()} SINNARA PACKAGE (신나라패키지). All rights reserved.
             <span className="mx-2 text-[#E8E3F0]">|</span>
             <span>사업자등록번호: {BRAND_INFO.business.regNumber}</span>
+            <span className="mx-2 text-[#E8E3F0]">|</span>
+            <a
+              href="tel:01045910334"
+              className="hover:text-[#8B6CF6] hover:underline font-mono"
+              title="전화 걸기"
+            >
+              Tel: 010-4591-0334
+            </a>
+            <span className="mx-2 text-[#E8E3F0]">|</span>
+            <a
+              href="mailto:ares361@naver.com"
+              className="hover:text-[#8B6CF6] hover:underline"
+            >
+              ares361@naver.com
+            </a>
           </div>
           <div className="flex items-center gap-4">
             <span>아이돌 굿즈 포장 전문 서비스</span>

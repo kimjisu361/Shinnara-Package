@@ -51,6 +51,25 @@ export const LocationStrip: React.FC<LocationStripProps> = ({ onNavigate }) => {
                     <span className="text-[#514078] font-medium mr-1">지하철:</span>
                     <span>인천 1호선 갈산역 2번 출구</span>
                   </div>
+                  <div>
+                    <span className="text-[#514078] font-medium mr-1">상담전화:</span>
+                    <a
+                      href="tel:01045910334"
+                      className="font-mono font-bold text-[#292532] hover:text-[#8B6CF6] hover:underline"
+                      title="전화 걸기"
+                    >
+                      010-4591-0334
+                    </a>
+                  </div>
+                  <div>
+                    <span className="text-[#514078] font-medium mr-1">이메일:</span>
+                    <a
+                      href="mailto:ares361@naver.com?subject=%5B%EC%8B%A0%EB%82%98%EB%9D%BC%ED%8C%A8%ED%82%A4%EC%A7%80%5D%20%EA%B5%BF%EC%A6%88%20%ED%8F%AC%EC%9E%A5%20%EA%B2%AC%EC%A0%81%20%EB%AC%B8%EC%9D%98"
+                      className="font-mono text-[#514078] hover:text-[#8B6CF6] hover:underline"
+                    >
+                      ares361@naver.com
+                    </a>
+                  </div>
                 </div>
               </div>
 

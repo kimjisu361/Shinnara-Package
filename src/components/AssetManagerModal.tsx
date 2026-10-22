@@ -221,6 +221,51 @@ export const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
               )}
             </div>
           </div>
+
+          {/* Slot 4: KakaoTalk Channel URL */}
+          <div className="p-4 rounded-xl bg-[#FEE500]/15 border border-[#FEE500]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#FEE500] text-[#191919] flex items-center justify-center shrink-0 shadow-xs font-bold">
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                  <path d="M12 3C6.477 3 2 6.477 2 10.768c0 2.766 1.867 5.19 4.675 6.567l-.95 3.513c-.084.307.25.56.515.396l4.24-2.617c.502.052 1.01.079 1.52.079 5.523 0 10-3.477 10-7.768C22 6.477 17.523 3 12 3z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <span className="font-bold text-[#292532] block">카카오톡 채널 상담 링크</span>
+                <span className="text-[11px] text-[#777180]">
+                  {customAssets.kakaoChannelUrl || 'http://pf.kakao.com/_CXxcmX'}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="http://pf.kakao.com/_CXxcmX"
+                value={customAssets.kakaoChannelUrl || ''}
+                onChange={(e) => {
+                  const updated = { ...customAssets, kakaoChannelUrl: e.target.value };
+                  onUpdateAssets(updated);
+                  try {
+                    localStorage.setItem('sinnara_assets', JSON.stringify(updated));
+                  } catch {
+                    // ignore
+                  }
+                }}
+                className="px-2.5 py-1.5 bg-white border border-[#E8E3F0] rounded-lg text-xs font-mono text-[#292532] w-48 focus:outline-none focus:border-[#8B6CF6]"
+              />
+              {customAssets.kakaoChannelUrl && (
+                <button
+                  type="button"
+                  onClick={() => window.open(customAssets.kakaoChannelUrl, '_blank')}
+                  className="px-2.5 py-1.5 bg-[#FEE500] hover:bg-[#fae100] text-[#191919] font-bold text-xs rounded-lg transition-colors shrink-0"
+                  title="연결 테스트"
+                >
+                  테스트
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="p-4 bg-slate-50 border-t border-[#E8E3F0] flex items-center justify-between text-xs">
