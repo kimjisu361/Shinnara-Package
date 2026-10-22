@@ -1,0 +1,545 @@
+import React, { useState } from 'react';
+import { CONTACT_CHANNELS } from '../data/content';
+import { QuoteFormData } from '../types';
+import {
+  Send,
+  Phone,
+  MessageCircle,
+  Mail,
+  FileSpreadsheet,
+  CheckCircle2,
+  Copy,
+  Check,
+  AlertCircle,
+  UploadCloud,
+  FileCheck
+} from 'lucide-react';
+
+interface QuoteViewProps {
+  onOpenGoogleSitesGuide: () => void;
+}
+
+export const QuoteView: React.FC<QuoteViewProps> = ({ onOpenGoogleSitesGuide }) => {
+  const [formData, setFormData] = useState<QuoteFormData>({
+    companyName: '',
+    contactName: '',
+    phone: '',
+    email: '',
+    goodsType: '',
+    estimatedQuantity: '',
+    goodsSize: '',
+    packagingMethod: '',
+    materialReady: 'needConsult',
+    targetSchedule: '',
+    fileNote: '',
+    additionalRequests: '',
+    agreePrivacy: false,
+  });
+
+  const [selectedFileName, setSelectedFileName] = useState<string>('');
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [copied, setCopied] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFileName(file.name);
+      setFormData(prev => ({ ...prev, fileNote: `${file.name} (${Math.round(file.size / 1024)} KB)` }));
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage('');
+
+    if (!formData.companyName.trim()) {
+      setErrorMessage('업체명 또는 브랜드명을 입력해 주세요.');
+      return;
+    }
+    if (!formData.contactName.trim()) {
+      setErrorMessage('담당자 성함을 입력해 주세요.');
+      return;
+    }
+    if (!formData.phone.trim() && !formData.email.trim()) {
+      setErrorMessage('연락처(전화번호) 또는 이메일 중 최소 하나를 입력해 주세요.');
+      return;
+    }
+    if (!formData.goodsType.trim()) {
+      setErrorMessage('굿즈 종류를 입력해 주세요.');
+      return;
+    }
+    if (!formData.estimatedQuantity.trim()) {
+      setErrorMessage('예상 작업 수량을 입력해 주세요.');
+      return;
+    }
+    if (!formData.agreePrivacy) {
+      setErrorMessage('개인정보 수집 및 이용에 동의해 주세요.');
+      return;
+    }
+
+    // Save inquiry to localStorage for client-side persistence
+    try {
+      const existing = JSON.parse(localStorage.getItem('sinnara_inquiries') || '[]');
+      existing.push({
+        ...formData,
+        submittedAt: new Date().toISOString(),
+      });
+      localStorage.setItem('sinnara_inquiries', JSON.stringify(existing));
+    } catch {
+      // ignore storage error
+    }
+
+    setIsSubmitted(true);
+    window.scrollTo({ top: 300, behavior: 'smooth' });
+  };
+
+  const generateInquirySummary = () => {
+    return `[신나라패키지 포장 견적 문의 내역]
+- 업체/브랜드명: ${formData.companyName}
+- 담당자: ${formData.contactName}
+- 연락처: ${formData.phone || '미기재'}
+- 이메일: ${formData.email || '미기재'}
+- 굿즈 종류: ${formData.goodsType}
+- 예상 수량: ${formData.estimatedQuantity}
+- 규격/사이즈: ${formData.goodsSize || '상담 시 확인'}
+- 희망 포장 방식: ${formData.packagingMethod || '상담 시 제안 희망'}
+- 포장재 준비 여부: ${
+      formData.materialReady === 'ready'
+        ? '고객사 자체 준비'
+        : formData.materialReady === 'sinnaraSupplied'
+        ? '스튜디오 포장재 사용'
+        : '상담 후 결정'
+    }
+- 희망 작업 일정: ${formData.targetSchedule || '일정 협의'}
+- 첨부 파일: ${formData.fileNote || '없음'}
+- 추가 요청사항: ${formData.additionalRequests || '없음'}
+(접수일시: ${new Date().toLocaleString()})`;
+  };
+
+  const handleCopySummary = () => {
+    navigator.clipboard.writeText(generateInquirySummary());
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  return (
+    <div className="py-12 sm:py-16 bg-white min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="max-w-3xl mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#F7F4FF] border border-[#B8A1F7]/40 rounded-md text-xs font-mono tracking-wider text-[#514078] mb-4">
+            GET A QUOTE
+          </div>
+          <h1 className="font-['Outfit',sans-serif] text-3xl sm:text-4xl lg:text-5xl font-bold text-[#292532] tracking-tight mb-4">
+            아이돌 굿즈 포장 견적 문의
+          </h1>
+          <p className="text-base sm:text-lg text-[#514078] leading-relaxed">
+            “포장할 굿즈의 종류와 수량, 원하는 포장 방식을 알려주세요. 내용을 확인하고 상담을 진행할 수 있도록 안내해 드립니다.”
+          </p>
+        </div>
+
+        {/* Contact Channels Grid (Explicitly labeled as editable placeholders) */}
+        <div className="mb-14">
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-xs font-mono font-bold text-[#777180] uppercase tracking-wider">
+              INQUIRY CHANNELS · 상담 접수 창구
+            </span>
+            <span className="text-[11px] text-[#8B6CF6] bg-[#F7F4FF] px-2 py-0.5 rounded border border-[#E8E3F0]">
+              운영 정보 교체 영역
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Phone */}
+            <div className="p-5 rounded-xl bg-[#F7F4FF] border border-[#E8E3F0] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 text-[#8B6CF6]">
+                    <Phone className="w-4 h-4" />
+                    <span className="text-xs font-bold text-[#292532]">{CONTACT_CHANNELS.phone.label}</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-400">교체용</span>
+                </div>
+                <div className="text-sm font-semibold text-[#514078] mb-1 font-mono">
+                  {CONTACT_CHANNELS.phone.value}
+                </div>
+                <div className="text-[11px] text-[#777180] leading-tight">
+                  {CONTACT_CHANNELS.phone.note}
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-[#E8E3F0] text-[10px] text-[#8B6CF6]">
+                {CONTACT_CHANNELS.phone.instruction}
+              </div>
+            </div>
+
+            {/* KakaoTalk */}
+            <div className="p-5 rounded-xl bg-[#F7F4FF] border border-[#E8E3F0] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 text-[#8B6CF6]">
+                    <MessageCircle className="w-4 h-4" />
+                    <span className="text-xs font-bold text-[#292532]">{CONTACT_CHANNELS.kakao.label}</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-400">교체용</span>
+                </div>
+                <div className="text-sm font-semibold text-[#514078] mb-1">
+                  {CONTACT_CHANNELS.kakao.value}
+                </div>
+                <div className="text-[11px] text-[#777180] leading-tight">
+                  {CONTACT_CHANNELS.kakao.note}
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-[#E8E3F0] text-[10px] text-[#8B6CF6]">
+                {CONTACT_CHANNELS.kakao.instruction}
+              </div>
+            </div>
+
+            {/* Email */}
+            <div className="p-5 rounded-xl bg-[#F7F4FF] border border-[#E8E3F0] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 text-[#8B6CF6]">
+                    <Mail className="w-4 h-4" />
+                    <span className="text-xs font-bold text-[#292532]">{CONTACT_CHANNELS.email.label}</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-400">교체용</span>
+                </div>
+                <div className="text-sm font-semibold text-[#514078] mb-1 font-mono">
+                  {CONTACT_CHANNELS.email.value}
+                </div>
+                <div className="text-[11px] text-[#777180] leading-tight">
+                  {CONTACT_CHANNELS.email.note}
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-[#E8E3F0] text-[10px] text-[#8B6CF6]">
+                {CONTACT_CHANNELS.email.instruction}
+              </div>
+            </div>
+
+            {/* Google Forms Connection */}
+            <div className="p-5 rounded-xl bg-[#F7F4FF] border border-[#E8E3F0] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 text-[#8B6CF6]">
+                    <FileSpreadsheet className="w-4 h-4" />
+                    <span className="text-xs font-bold text-[#292532]">{CONTACT_CHANNELS.googleForm.label}</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-400">연동형</span>
+                </div>
+                <div className="text-xs text-[#514078] leading-tight mb-2">
+                  {CONTACT_CHANNELS.googleForm.note}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onOpenGoogleSitesGuide}
+                className="mt-3 pt-3 border-t border-[#E8E3F0] text-[11px] text-[#8B6CF6] font-semibold text-left hover:underline flex items-center justify-between"
+              >
+                <span>연동 가이드 확인</span>
+                <span>↗</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Form Container */}
+        <div className="bg-white border border-[#E8E3F0] rounded-2xl p-6 sm:p-10 shadow-sm max-w-4xl mx-auto">
+          {isSubmitted ? (
+            <div className="text-center py-10 space-y-6 animate-in fade-in duration-300">
+              <div className="w-16 h-16 rounded-full bg-[#E9E1FF] text-[#8B6CF6] flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-bold text-[#292532]">
+                  견적 문의 내용이 정상 접수되었습니다.
+                </h3>
+                <p className="text-sm text-[#777180] max-w-md mx-auto">
+                  접수해 주신 내용을 토대로 담당자가 검토 후 기재해 주신 연락처로 상담을 안내해 드리겠습니다.
+                </p>
+              </div>
+
+              {/* Inquiry Summary Preview */}
+              <div className="bg-[#F7F4FF] border border-[#E8E3F0] rounded-xl p-5 text-left text-xs font-mono text-[#514078] max-w-lg mx-auto whitespace-pre-line leading-relaxed">
+                {generateInquirySummary()}
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+                <button
+                  onClick={handleCopySummary}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#8B6CF6] text-white rounded-lg text-xs font-semibold hover:bg-[#7854f3]"
+                >
+                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  <span>{copied ? '클립보드에 복사됨' : '견적 내용 텍스트 복사하기'}</span>
+                </button>
+                <button
+                  onClick={() => setIsSubmitted(false)}
+                  className="px-5 py-2.5 bg-white border border-[#E8E3F0] text-[#777180] rounded-lg text-xs font-medium hover:bg-[#F7F4FF]"
+                >
+                  새로운 문의 작성하기
+                </button>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {errorMessage && (
+                <div className="p-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
+
+              {/* Section 1: Client Information */}
+              <div>
+                <h3 className="text-base font-bold text-[#292532] mb-4 pb-2 border-b border-[#E8E3F0]">
+                  1. 의뢰 담당자 정보
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#514078] mb-1.5">
+                      업체명 또는 브랜드명 <span className="text-[#8B6CF6]">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="companyName"
+                      value={formData.companyName}
+                      onChange={handleInputChange}
+                      placeholder="예: 굿즈스튜디오 / 개인 판매자명"
+                      className="w-full px-3.5 py-2.5 bg-[#F7F4FF]/60 border border-[#E8E3F0] rounded-lg text-xs sm:text-sm text-[#292532] focus:outline-none focus:border-[#8B6CF6] focus:bg-white transition-colors"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#514078] mb-1.5">
+                      담당자 성함 <span className="text-[#8B6CF6]">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="contactName"
+                      value={formData.contactName}
+                      onChange={handleInputChange}
+                      placeholder="예: 홍길동"
+                      className="w-full px-3.5 py-2.5 bg-[#F7F4FF]/60 border border-[#E8E3F0] rounded-lg text-xs sm:text-sm text-[#292532] focus:outline-none focus:border-[#8B6CF6] focus:bg-white transition-colors"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#514078] mb-1.5">
+                      연락처 (전화번호)
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="예: 010-1234-5678"
+                      className="w-full px-3.5 py-2.5 bg-[#F7F4FF]/60 border border-[#E8E3F0] rounded-lg text-xs sm:text-sm text-[#292532] focus:outline-none focus:border-[#8B6CF6] focus:bg-white transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#514078] mb-1.5">
+                      이메일 주소
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="예: your@company.com"
+                      className="w-full px-3.5 py-2.5 bg-[#F7F4FF]/60 border border-[#E8E3F0] rounded-lg text-xs sm:text-sm text-[#292532] focus:outline-none focus:border-[#8B6CF6] focus:bg-white transition-colors"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Goods & Packing Details */}
+              <div>
+                <h3 className="text-base font-bold text-[#292532] mb-4 pb-2 border-b border-[#E8E3F0]">
+                  2. 굿즈 및 포장 세부 사항
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#514078] mb-1.5">
+                      굿즈 종류 <span className="text-[#8B6CF6]">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="goodsType"
+                      value={formData.goodsType}
+                      onChange={handleInputChange}
+                      placeholder="예: 아이돌 앨범 포토카드, 예약특전 엽서, 굿즈세트"
+                      className="w-full px-3.5 py-2.5 bg-[#F7F4FF]/60 border border-[#E8E3F0] rounded-lg text-xs sm:text-sm text-[#292532] focus:outline-none focus:border-[#8B6CF6] focus:bg-white transition-colors"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#514078] mb-1.5">
+                      예상 작업 수량 <span className="text-[#8B6CF6]">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="estimatedQuantity"
+                      value={formData.estimatedQuantity}
+                      onChange={handleInputChange}
+                      placeholder="예: 1,000매 / 500세트"
+                      className="w-full px-3.5 py-2.5 bg-[#F7F4FF]/60 border border-[#E8E3F0] rounded-lg text-xs sm:text-sm text-[#292532] focus:outline-none focus:border-[#8B6CF6] focus:bg-white transition-colors"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#514078] mb-1.5">
+                      굿즈 크기 / 규격
+                    </label>
+                    <input
+                      type="text"
+                      name="goodsSize"
+                      value={formData.goodsSize}
+                      onChange={handleInputChange}
+                      placeholder="예: 55×85mm 표준 / 100×150mm"
+                      className="w-full px-3.5 py-2.5 bg-[#F7F4FF]/60 border border-[#E8E3F0] rounded-lg text-xs sm:text-sm text-[#292532] focus:outline-none focus:border-[#8B6CF6] focus:bg-white transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#514078] mb-1.5">
+                      원하는 포장 방식
+                    </label>
+                    <input
+                      type="text"
+                      name="packagingMethod"
+                      value={formData.packagingMethod}
+                      onChange={handleInputChange}
+                      placeholder="예: 고투명 OPP 접착 / 슬리브+탑로더 / 전용 봉투입"
+                      className="w-full px-3.5 py-2.5 bg-[#F7F4FF]/60 border border-[#E8E3F0] rounded-lg text-xs sm:text-sm text-[#292532] focus:outline-none focus:border-[#8B6CF6] focus:bg-white transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#514078] mb-1.5">
+                      포장재(부자재) 준비 여부
+                    </label>
+                    <select
+                      name="materialReady"
+                      value={formData.materialReady}
+                      onChange={handleInputChange}
+                      className="w-full px-3.5 py-2.5 bg-[#F7F4FF]/60 border border-[#E8E3F0] rounded-lg text-xs sm:text-sm text-[#292532] focus:outline-none focus:border-[#8B6CF6] focus:bg-white transition-colors"
+                    >
+                      <option value="needConsult">상담 시 적합한 자재 추천 요청</option>
+                      <option value="ready">고객사에서 직접 포장재를 제공하여 입고</option>
+                      <option value="sinnaraSupplied">신나라패키지 표준 포장재(OPP/슬리브) 사용 희망</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#514078] mb-1.5">
+                      희망 작업 일정 / 납품 기한
+                    </label>
+                    <input
+                      type="text"
+                      name="targetSchedule"
+                      value={formData.targetSchedule}
+                      onChange={handleInputChange}
+                      placeholder="예: 2026년 11월 초까지 납품 희망"
+                      className="w-full px-3.5 py-2.5 bg-[#F7F4FF]/60 border border-[#E8E3F0] rounded-lg text-xs sm:text-sm text-[#292532] focus:outline-none focus:border-[#8B6CF6] focus:bg-white transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* File Attachment Slot */}
+                <div className="mt-4">
+                  <label className="block text-xs font-semibold text-[#514078] mb-1.5">
+                    참고 이미지 또는 발주 파일 첨부
+                  </label>
+                  <label className="border-2 border-dashed border-[#B8A1F7]/40 hover:border-[#8B6CF6] rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer bg-[#F7F4FF]/30 transition-colors">
+                    <input
+                      type="file"
+                      onChange={handleFileChange}
+                      className="hidden"
+                      accept="image/*,.pdf,.zip"
+                    />
+                    {selectedFileName ? (
+                      <div className="flex items-center gap-2 text-xs font-semibold text-[#514078]">
+                        <FileCheck className="w-5 h-5 text-emerald-600" />
+                        <span>선택된 파일: {selectedFileName}</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-1 text-center">
+                        <UploadCloud className="w-6 h-6 text-[#8B6CF6]" />
+                        <span className="text-xs font-medium text-[#292532]">
+                          굿즈 사진, 포장 참고 이미지, 사양서 파일 첨부 (선택)
+                        </span>
+                        <span className="text-[10px] text-[#777180]">
+                          이미지, PDF, ZIP 등 지원
+                        </span>
+                      </div>
+                    )}
+                  </label>
+                </div>
+
+                {/* Additional Requests */}
+                <div className="mt-4">
+                  <label className="block text-xs font-semibold text-[#514078] mb-1.5">
+                    기타 요청 사항
+                  </label>
+                  <textarea
+                    rows={3}
+                    name="additionalRequests"
+                    value={formData.additionalRequests}
+                    onChange={handleInputChange}
+                    placeholder="검수 기준, 멤버별 묶음 정렬, 택배 발송 요청 등 특이사항이 있다면 자유롭게 적어주세요."
+                    className="w-full px-3.5 py-2.5 bg-[#F7F4FF]/60 border border-[#E8E3F0] rounded-lg text-xs sm:text-sm text-[#292532] focus:outline-none focus:border-[#8B6CF6] focus:bg-white transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Section 3: Privacy Consent */}
+              <div className="p-4 rounded-xl bg-[#F7F4FF] border border-[#E8E3F0]">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="agreePrivacy"
+                    checked={formData.agreePrivacy}
+                    onChange={handleInputChange}
+                    className="mt-0.5 rounded text-[#8B6CF6] focus:ring-[#8B6CF6]"
+                    required
+                  />
+                  <div className="text-xs text-[#514078] leading-relaxed">
+                    <span className="font-semibold text-[#292532]">개인정보 수집 및 이용 동의 (필수):</span> 견적 상담 및 작업 일정 조율을 위해 기재된 업체명, 담당자명, 연락처, 이메일을 수집하며 상담 목적 종료 시까지 안전하게 보관됩니다.
+                  </div>
+                </label>
+              </div>
+
+              {/* Submit Button */}
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="w-full py-4 bg-[#8B6CF6] hover:bg-[#7854f3] active:bg-[#6842e4] text-white font-bold rounded-xl shadow-sm hover:shadow transition-all text-sm sm:text-base flex items-center justify-center gap-2 group focus:outline-none focus:ring-2 focus:ring-[#8B6CF6]/40"
+                >
+                  <span>견적 문의 접수하기</span>
+                  <Send className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
