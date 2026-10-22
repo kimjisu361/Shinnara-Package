@@ -16,6 +16,67 @@ import {
   Loader2
 } from 'lucide-react';
 
+// Helper to format quantity with thousand commas if it contains 4+ digit numbers
+const formatQuantity = (val: string): string => {
+  if (!val || !val.trim()) return '미입력';
+  const trimmed = val.trim();
+  if (/^\d+$/.test(trimmed)) {
+    return Number(trimmed).toLocaleString('ko-KR');
+  }
+  return trimmed.replace(/\b\d{4,}\b/g, num => Number(num).toLocaleString('ko-KR'));
+};
+
+// Helper to convert internal code like 'needConsult' to natural Korean label
+const getMaterialReadyLabel = (val: string): string => {
+  switch (val) {
+    case 'ready':
+      return '고객사 자체 준비 (자재 직접 제공)';
+    case 'sinnaraSupplied':
+      return '신나라패키지 표준 포장재(OPP/슬리브) 사용 희망';
+    case 'needConsult':
+      return '자재 별도 상담 필요 (적합한 자재 추천 요청)';
+    default:
+      return '상담 후 결정';
+  }
+};
+
+// Helper to generate a clean, structured inquiry summary for email and on-screen preview
+const generateFormattedSummary = (data: QuoteFormData, fileName?: string, fileSizeKb?: number): string => {
+  const formattedQty = formatQuantity(data.estimatedQuantity);
+  const materialLabel = getMaterialReadyLabel(data.materialReady);
+  const fileText = fileName
+    ? `${fileName}${fileSizeKb !== undefined ? ` (${fileSizeKb} KB)` : ''}`
+    : '첨부 없음';
+
+  return `================================================
+[신나라패키지] 포장 견적 문의 상세 내역
+================================================
+
+[1. 고객 정보]
+• 업체명(브랜드명): ${data.companyName.trim() || '미입력'}
+• 담당자 성함: ${data.contactName.trim() || '미입력'}
+• 연락처(전화번호): ${data.phone.trim() || '미입력'}
+• 이메일 주소: ${data.email.trim() || '미입력'}
+
+[2. 굿즈 및 포장 정보]
+• 굿즈 종류: ${data.goodsType.trim() || '미입력'}
+• 예상 수량: ${formattedQty}
+• 굿즈 크기/규격: ${data.goodsSize.trim() || '미입력 (상담 시 규격 확인)'}
+• 희망 포장 방식: ${data.packagingMethod.trim() || '미입력 (상담 시 포장 방식 제안 요청)'}
+• 포장재(부자재) 준비: ${materialLabel}
+
+[3. 일정 및 추가 요청 사항]
+• 희망 작업 일정: ${data.targetSchedule.trim() || '미입력 (일정 협의)'}
+• 첨부 파일: ${fileText}
+• 개인정보 수집·이용 동의: ${data.agreePrivacy ? '동의 완료' : '미동의'}
+
+------------------------------------------------
+[추가 요청 사항]
+${data.additionalRequests.trim() || '미입력 (별도 특이사항 없음)'}
+================================================
+(접수 시각: ${new Date().toLocaleString('ko-KR')})`;
+};
+
 interface QuoteViewProps {
   onOpenGoogleSitesGuide: () => void;
   kakaoChannelUrl?: string;
@@ -196,21 +257,41 @@ export const QuoteView: React.FC<QuoteViewProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Prepare form data for Netlify Forms
+      const fileSizeKb = selectedFile ? Math.round(selectedFile.size / 1024) : undefined;
+      const formattedQty = formatQuantity(formData.estimatedQuantity);
+      const materialLabel = getMaterialReadyLabel(formData.materialReady);
+      const fileText = selectedFileName
+        ? `${selectedFileName}${fileSizeKb !== undefined ? ` (${fileSizeKb} KB)` : ''}`
+        : '첨부 없음';
+      const summaryText = generateFormattedSummary(formData, selectedFileName, fileSizeKb);
+
+      // Prepare form data for Netlify Forms with natural Korean field names & sections
       const netlifyData = new FormData();
       netlifyData.append('form-name', 'quote-form');
-      netlifyData.append('companyName', formData.companyName.trim());
-      netlifyData.append('contactName', formData.contactName.trim());
-      netlifyData.append('phone', formData.phone.trim());
-      netlifyData.append('email', formData.email.trim());
-      netlifyData.append('goodsType', formData.goodsType.trim());
-      netlifyData.append('estimatedQuantity', formData.estimatedQuantity.trim());
-      netlifyData.append('goodsSize', formData.goodsSize.trim());
-      netlifyData.append('packagingMethod', formData.packagingMethod.trim());
-      netlifyData.append('materialReady', formData.materialReady);
-      netlifyData.append('targetSchedule', formData.targetSchedule.trim());
-      netlifyData.append('additionalRequests', formData.additionalRequests.trim());
-      netlifyData.append('agreePrivacy', formData.agreePrivacy ? '동의함' : '미동의');
+      netlifyData.append('bot-field', '');
+      netlifyData.append('subject', `[신나라패키지] 새 견적 문의 접수 - ${formData.companyName.trim()}`);
+      netlifyData.append('[한눈에 보는 견적 문의 요약]', summaryText);
+
+      // 1. 고객 정보
+      netlifyData.append('[고객 정보] 업체명', formData.companyName.trim());
+      netlifyData.append('[고객 정보] 담당자', formData.contactName.trim());
+      netlifyData.append('[고객 정보] 연락처', formData.phone.trim() || '미입력');
+      netlifyData.append('[고객 정보] 이메일', formData.email.trim() || '미입력');
+
+      // 2. 굿즈 및 포장 정보
+      netlifyData.append('[굿즈 및 포장 정보] 굿즈 종류', formData.goodsType.trim());
+      netlifyData.append('[굿즈 및 포장 정보] 예상 수량', formattedQty);
+      netlifyData.append('[굿즈 및 포장 정보] 굿즈 크기', formData.goodsSize.trim() || '미입력 (상담 시 규격 확인)');
+      netlifyData.append('[굿즈 및 포장 정보] 포장 방식', formData.packagingMethod.trim() || '미입력 (상담 시 추천 희망)');
+      netlifyData.append('[굿즈 및 포장 정보] 자재 준비', materialLabel);
+
+      // 3. 일정 및 추가 요청 사항
+      netlifyData.append('[일정 및 추가 요청 사항] 희망 일정', formData.targetSchedule.trim() || '미입력 (일정 협의)');
+      netlifyData.append('[일정 및 추가 요청 사항] 첨부 파일', fileText);
+      netlifyData.append('[일정 및 추가 요청 사항] 추가 요청 사항', formData.additionalRequests.trim() || '미입력 (별도 추가 요청 없음)');
+      netlifyData.append('개인정보 수집·이용 동의', formData.agreePrivacy ? '동의 완료' : '미동의');
+
+      // Attach file for Netlify Forms file upload
       if (selectedFile) {
         netlifyData.append('file', selectedFile);
       }
@@ -229,6 +310,8 @@ export const QuoteView: React.FC<QuoteViewProps> = ({
         const existing = JSON.parse(localStorage.getItem('sinnara_inquiries') || '[]');
         existing.push({
           ...formData,
+          formattedQuantity: formattedQty,
+          materialReadyLabel: materialLabel,
           submittedAt: new Date().toISOString(),
         });
         localStorage.setItem('sinnara_inquiries', JSON.stringify(existing));
@@ -249,26 +332,8 @@ export const QuoteView: React.FC<QuoteViewProps> = ({
   };
 
   const generateInquirySummary = () => {
-    return `[신나라패키지 포장 견적 문의 내역]
-- 업체/브랜드명: ${formData.companyName}
-- 담당자: ${formData.contactName}
-- 연락처: ${formData.phone || '미기재'}
-- 이메일: ${formData.email || '미기재'}
-- 굿즈 종류: ${formData.goodsType}
-- 예상 수량: ${formData.estimatedQuantity}
-- 규격/사이즈: ${formData.goodsSize || '상담 시 확인'}
-- 희망 포장 방식: ${formData.packagingMethod || '상담 시 제안 희망'}
-- 포장재 준비 여부: ${
-      formData.materialReady === 'ready'
-        ? '고객사 자체 준비'
-        : formData.materialReady === 'sinnaraSupplied'
-        ? '스튜디오 포장재 사용'
-        : '상담 후 결정'
-    }
-- 희망 작업 일정: ${formData.targetSchedule || '일정 협의'}
-- 첨부 파일: ${formData.fileNote || '없음'}
-- 추가 요청사항: ${formData.additionalRequests || '없음'}
-(접수일시: ${new Date().toLocaleString()})`;
+    const fileSizeKb = selectedFile ? Math.round(selectedFile.size / 1024) : undefined;
+    return generateFormattedSummary(formData, selectedFileName, fileSizeKb);
   };
 
   const handleCopySummary = () => {
@@ -580,6 +645,7 @@ export const QuoteView: React.FC<QuoteViewProps> = ({
             >
               {/* Netlify Forms Hidden Identification and Honeypot */}
               <input type="hidden" name="form-name" value="quote-form" />
+              <input type="hidden" name="subject" value="[신나라패키지] 새 견적 문의 접수" />
               <div className="hidden">
                 <label>
                   스팸 방지 필드 <input name="bot-field" />

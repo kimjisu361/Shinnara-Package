@@ -20,19 +20,30 @@
     <form name="quote-form" data-netlify="true" netlify-honeypot="bot-field" enctype="multipart/form-data" hidden>
       <input type="hidden" name="form-name" value="quote-form" />
       <input type="hidden" name="bot-field" />
-      <input type="text" name="companyName" />
-      <input type="text" name="contactName" />
-      <input type="tel" name="phone" />
-      <input type="email" name="email" />
-      <input type="text" name="goodsType" />
-      <input type="text" name="estimatedQuantity" />
-      <input type="text" name="goodsSize" />
-      <input type="text" name="packagingMethod" />
-      <input type="text" name="materialReady" />
-      <input type="text" name="targetSchedule" />
+      <input type="hidden" name="subject" />
+      <textarea name="[한눈에 보는 견적 문의 요약]"></textarea>
+
+      <!-- 1. 고객 정보 -->
+      <input type="text" name="[고객 정보] 업체명" />
+      <input type="text" name="[고객 정보] 담당자" />
+      <input type="tel" name="[고객 정보] 연락처" />
+      <input type="email" name="[고객 정보] 이메일" />
+
+      <!-- 2. 굿즈 및 포장 정보 -->
+      <input type="text" name="[굿즈 및 포장 정보] 굿즈 종류" />
+      <input type="text" name="[굿즈 및 포장 정보] 예상 수량" />
+      <input type="text" name="[굿즈 및 포장 정보] 굿즈 크기" />
+      <input type="text" name="[굿즈 및 포장 정보] 포장 방식" />
+      <input type="text" name="[굿즈 및 포장 정보] 자재 준비" />
+
+      <!-- 3. 일정 및 추가 요청 사항 -->
+      <input type="text" name="[일정 및 추가 요청 사항] 희망 일정" />
+      <input type="text" name="[일정 및 추가 요청 사항] 첨부 파일" />
+      <textarea name="[일정 및 추가 요청 사항] 추가 요청 사항"></textarea>
+      <input type="text" name="개인정보 수집·이용 동의" />
+
+      <!-- 첨부 파일 -->
       <input type="file" name="file" />
-      <textarea name="additionalRequests"></textarea>
-      <input type="checkbox" name="agreePrivacy" />
     </form>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
