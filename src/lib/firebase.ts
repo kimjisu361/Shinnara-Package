@@ -49,6 +49,20 @@ if (isFirebaseConfigured()) {
   }
 }
 
+export const getAuthInstance = (): Auth | null => {
+  if (authInstance) return authInstance;
+  if (isFirebaseConfigured()) {
+    try {
+      appInstance = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+      authInstance = getAuth(appInstance);
+      return authInstance;
+    } catch (e) {
+      console.error('[Firebase Init Error]:', e);
+    }
+  }
+  return null;
+};
+
 export const app = appInstance;
 export const auth = authInstance;
 export const db = firestoreInstance;

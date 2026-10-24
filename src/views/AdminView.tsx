@@ -74,22 +74,28 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[AdminView] 로그인 버튼 클릭 및 폼 제출(Submit) 감지됨! 이메일:', emailInput);
+
     if (isSubmitting) {
+      console.warn('[AdminView] 이미 로그인 처리가 진행 중입니다. 중복 제출 방지됨.');
       return;
     }
     setLoginError('');
 
     const targetEmail = emailInput.trim();
     if (!targetEmail) {
+      console.warn('[AdminView] 이메일 미입력');
       setLoginError('관리자 이메일 주소를 입력해 주세요.');
       return;
     }
     if (!passwordInput) {
+      console.warn('[AdminView] 비밀번호 미입력');
       setLoginError('비밀번호를 입력해 주세요.');
       return;
     }
 
     if (!isFirebaseConfigured()) {
+      console.error('[AdminView] Firebase 설정 누락 (isFirebaseConfigured === false)');
       setLoginError('Firebase 설정이 올바르지 않습니다. 관리자 환경 설정을 확인해 주세요.');
       return;
     }
@@ -99,7 +105,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
     setServerVerify(null);
     setIsSubmitting(true);
 
-    console.log('[AdminView] 관리자 로그인 시도 시작:', targetEmail);
+    console.log('[AdminView] Firebase 로그인 API(signInWithEmailAndPassword) 호출 시작...', targetEmail);
 
     try {
       const adminUser = await loginAdmin(targetEmail, passwordInput);

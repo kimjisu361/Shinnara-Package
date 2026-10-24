@@ -5,7 +5,7 @@ import {
   sendEmailVerification,
   User as FirebaseUser,
 } from 'firebase/auth';
-import { auth, isFirebaseConfigured, ADMIN_ALLOWED_EMAIL } from './firebase';
+import { auth, getAuthInstance, isFirebaseConfigured, ADMIN_ALLOWED_EMAIL } from './firebase';
 import { AdminUser, AdminAuthStatus } from '../types';
 
 export interface ServerVerifyResult {
@@ -45,13 +45,14 @@ export const getAuthErrorMessage = (errorCode: string): string => {
  * Sign in admin user with email and password.
  */
 export const loginAdmin = async (email: string, pass: string): Promise<AdminUser> => {
-  if (!isFirebaseConfigured() || !auth) {
+  const currentAuth = auth || getAuthInstance();
+  if (!isFirebaseConfigured() || !currentAuth) {
     throw new Error('CONFIG_MISSING: Firebase 환경 설정이 누락되었습니다.');
   }
 
   const trimmedEmail = email.trim().toLowerCase();
   console.log('[adminAuth] Firebase signInWithEmailAndPassword 호출 시작:', trimmedEmail);
-  const credential = await signInWithEmailAndPassword(auth, trimmedEmail, pass);
+  const credential = await signInWithEmailAndPassword(currentAuth, trimmedEmail, pass);
   const user = credential.user;
   console.log('[adminAuth] Firebase 인증 성공. UID:', user.uid, 'emailVerified:', user.emailVerified);
 
