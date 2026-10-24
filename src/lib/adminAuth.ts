@@ -46,12 +46,14 @@ export const getAuthErrorMessage = (errorCode: string): string => {
  */
 export const loginAdmin = async (email: string, pass: string): Promise<AdminUser> => {
   if (!isFirebaseConfigured() || !auth) {
-    throw new Error('CONFIG_MISSING: Firebase 환경 변수가 설정되지 않았습니다.');
+    throw new Error('CONFIG_MISSING: Firebase 환경 설정이 누락되었습니다.');
   }
 
   const trimmedEmail = email.trim().toLowerCase();
+  console.log('[adminAuth] Firebase signInWithEmailAndPassword 호출 시작:', trimmedEmail);
   const credential = await signInWithEmailAndPassword(auth, trimmedEmail, pass);
   const user = credential.user;
+  console.log('[adminAuth] Firebase 인증 성공. UID:', user.uid, 'emailVerified:', user.emailVerified);
 
   return {
     uid: user.uid,
@@ -84,6 +86,7 @@ export const resendVerificationEmail = async (): Promise<void> => {
  */
 export const verifyAdminWithServer = async (idToken: string): Promise<ServerVerifyResult> => {
   try {
+    console.log('[adminAuth] /.netlify/functions/verify-admin 서버리스 함수 호출 시작...');
     const res = await fetch('/.netlify/functions/verify-admin', {
       method: 'POST',
       headers: {
@@ -94,6 +97,7 @@ export const verifyAdminWithServer = async (idToken: string): Promise<ServerVeri
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
+      console.warn('[adminAuth] 서버리스 검증 응답 오류 (HTTP ' + res.status + '):', data);
       return {
         ok: false,
         isAdmin: false,
@@ -102,6 +106,7 @@ export const verifyAdminWithServer = async (idToken: string): Promise<ServerVeri
     }
 
     const data = await res.json();
+    console.log('[adminAuth] 서버리스 검증 응답 성공:', data);
     return {
       ok: true,
       isAdmin: Boolean(data.isAdmin),
@@ -110,6 +115,7 @@ export const verifyAdminWithServer = async (idToken: string): Promise<ServerVeri
       message: data.message,
     };
   } catch (err: any) {
+    console.error('[adminAuth] 서버리스 검증 요청 실패:', err);
     return {
       ok: false,
       isAdmin: false,

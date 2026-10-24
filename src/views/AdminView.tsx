@@ -74,9 +74,13 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) {
+      return;
+    }
     setLoginError('');
 
-    if (!emailInput.trim()) {
+    const targetEmail = emailInput.trim();
+    if (!targetEmail) {
       setLoginError('관리자 이메일 주소를 입력해 주세요.');
       return;
     }
@@ -85,20 +89,28 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
       return;
     }
 
+    if (!isFirebaseConfigured()) {
+      setLoginError('Firebase 설정이 올바르지 않습니다. 관리자 환경 설정을 확인해 주세요.');
+      return;
+    }
+
     // Clear any previous state before new login attempt
     setIdToken('');
     setServerVerify(null);
     setIsSubmitting(true);
 
+    console.log('[AdminView] 관리자 로그인 시도 시작:', targetEmail);
+
     try {
-      await loginAdmin(emailInput, passwordInput);
+      const adminUser = await loginAdmin(targetEmail, passwordInput);
+      console.log('[AdminView] Firebase 로그인 성공! UID:', adminUser.uid);
       setPasswordInput('');
       // subscribeAdminAuth will receive auth event and run multi-layer verification
     } catch (err: any) {
-      console.error('Login error:', err);
+      console.error('[AdminView Login Error]:', err);
       const code = err?.code || '';
       if (err?.message?.startsWith('CONFIG_MISSING')) {
-        setLoginError('Firebase 환경 변수 설정이 필요합니다. 아래 가이드를 확인해 주세요.');
+        setLoginError('Firebase 환경 설정이 누락되었습니다. 관리자 설정을 확인해 주세요.');
       } else {
         setLoginError(getAuthErrorMessage(code));
       }
@@ -302,7 +314,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
                 </div>
               )}
 
-              <form onSubmit={handleLogin} className="space-y-4">
+              <form onSubmit={handleLogin} noValidate className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-[#514078] mb-1.5">
                     관리자 이메일
@@ -312,10 +324,13 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
                     <input
                       type="email"
                       value={emailInput}
-                      onChange={(e) => setEmailInput(e.target.value)}
+                      onChange={(e) => {
+                        setEmailInput(e.target.value);
+                        if (loginError) setLoginError('');
+                      }}
                       placeholder="admin@example.com"
+                      autoComplete="username"
                       className="w-full pl-10 pr-3.5 py-2.5 bg-[#F7F4FF]/60 border border-[#E8E3F0] rounded-xl text-xs sm:text-sm text-[#292532] focus:outline-none focus:border-[#8B6CF6] focus:bg-white transition-colors"
-                      required
                     />
                   </div>
                   <div className="text-[11px] text-[#777180] mt-1 font-mono">
@@ -332,10 +347,13 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
                     <input
                       type="password"
                       value={passwordInput}
-                      onChange={(e) => setPasswordInput(e.target.value)}
+                      onChange={(e) => {
+                        setPasswordInput(e.target.value);
+                        if (loginError) setLoginError('');
+                      }}
                       placeholder="비밀번호 입력"
+                      autoComplete="current-password"
                       className="w-full pl-10 pr-3.5 py-2.5 bg-[#F7F4FF]/60 border border-[#E8E3F0] rounded-xl text-xs sm:text-sm text-[#292532] focus:outline-none focus:border-[#8B6CF6] focus:bg-white transition-colors"
-                      required
                     />
                   </div>
                 </div>
@@ -343,8 +361,8 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    disabled={isSubmitting || !isConfigured}
-                    className="w-full py-3 bg-[#8B6CF6] hover:bg-[#7854f3] active:bg-[#6842e4] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors shadow-sm"
+                    disabled={isSubmitting}
+                    className="w-full py-3 bg-[#8B6CF6] hover:bg-[#7854f3] active:bg-[#6842e4] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
                   >
                     {isSubmitting ? (
                       <>
