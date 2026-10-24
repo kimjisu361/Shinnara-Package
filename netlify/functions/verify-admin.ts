@@ -75,16 +75,29 @@ export const handler = async (event: NetlifyEvent): Promise<NetlifyResponse> => 
     const allowedAdminEmail = serverAllowedEmail.toLowerCase().trim();
 
     // 3. Resolve Firebase Web API Key from server environment
-    const apiKey =
+    const apiKey = (
       process.env.FIREBASE_API_KEY ||
       process.env.VITE_FIREBASE_API_KEY ||
-      'AIzaSyBC3VXrmTjNAQ3iAewAgCjbJsYWK_2LeLg';
+      ''
+    ).trim();
+
+    if (!apiKey) {
+      return {
+        statusCode: 500,
+        headers: defaultHeaders,
+        body: JSON.stringify({
+          ok: false,
+          isAdmin: false,
+          message: '서버 환경변수(FIREBASE_API_KEY 또는 VITE_FIREBASE_API_KEY)가 설정되지 않았습니다.',
+        }),
+      };
+    }
 
     // 4. Audience / project verification - FIREBASE_PROJECT_ID
     const expectedProjectId = (
       process.env.FIREBASE_PROJECT_ID ||
       process.env.VITE_FIREBASE_PROJECT_ID ||
-      'shinnara-package'
+      ''
     ).trim();
 
     try {
@@ -106,8 +119,9 @@ export const handler = async (event: NetlifyEvent): Promise<NetlifyResponse> => 
       const payload = JSON.parse(payloadJson);
 
       if (
-        payload.aud !== expectedProjectId ||
-        payload.iss !== `https://securetoken.google.com/${expectedProjectId}`
+        expectedProjectId &&
+        (payload.aud !== expectedProjectId ||
+          payload.iss !== `https://securetoken.google.com/${expectedProjectId}`)
       ) {
         return {
           statusCode: 403,
