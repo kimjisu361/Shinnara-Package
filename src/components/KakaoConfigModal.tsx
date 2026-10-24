@@ -11,16 +11,16 @@ interface KakaoConfigModalProps {
 export const KakaoConfigModal: React.FC<KakaoConfigModalProps> = ({
   isOpen,
   onClose,
-  currentUrl = 'http://pf.kakao.com/_CXxcmX',
+  currentUrl = 'https://pf.kakao.com/_CXxcmX',
   onSaveUrl,
 }) => {
-  const [urlInput, setUrlInput] = useState(currentUrl || 'http://pf.kakao.com/_CXxcmX');
+  const [urlInput, setUrlInput] = useState(currentUrl || 'https://pf.kakao.com/_CXxcmX');
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [error, setError] = useState('');
 
   React.useEffect(() => {
     if (isOpen) {
-      setUrlInput(currentUrl || 'http://pf.kakao.com/_CXxcmX');
+      setUrlInput(currentUrl || 'https://pf.kakao.com/_CXxcmX');
     }
   }, [isOpen, currentUrl]);
 
@@ -103,7 +103,7 @@ export const KakaoConfigModal: React.FC<KakaoConfigModalProps> = ({
                   setUrlInput(e.target.value);
                   setError('');
                 }}
-                placeholder="예: http://pf.kakao.com/_CXxcmX"
+                placeholder="예: https://pf.kakao.com/_CXxcmX"
                 className="w-full px-3.5 py-3 bg-[#F7F4FF]/70 border border-[#B8A1F7]/50 rounded-xl text-xs sm:text-sm text-[#292532] focus:outline-none focus:border-[#8B6CF6] focus:bg-white transition-colors pr-10 font-mono"
               />
               {currentUrl && (

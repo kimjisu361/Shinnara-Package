@@ -222,7 +222,7 @@ export const CONTACT_CHANNELS = {
   kakao: {
     label: '카카오톡 문의',
     value: '신나라패키지 카카오톡 채널',
-    link: 'http://pf.kakao.com/_CXxcmX',
+    link: 'https://pf.kakao.com/_CXxcmX',
     note: '실시간 1:1 채팅 상담 및 사진 전송 문의',
     isPlaceholder: false,
     instruction: '클릭 시 카카오톡 채널 1:1 상담 채팅으로 즉시 연결됩니다.'

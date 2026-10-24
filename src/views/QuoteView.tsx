@@ -263,14 +263,11 @@ export const QuoteView: React.FC<QuoteViewProps> = ({
       const fileText = selectedFileName
         ? `${selectedFileName}${fileSizeKb !== undefined ? ` (${fileSizeKb} KB)` : ''}`
         : '첨부 없음';
-      const summaryText = generateFormattedSummary(formData, selectedFileName, fileSizeKb);
-
       // Prepare form data for Netlify Forms with natural Korean field names & sections
       const netlifyData = new FormData();
       netlifyData.append('form-name', 'quote-form');
       netlifyData.append('bot-field', '');
       netlifyData.append('subject', `[신나라패키지] 새 견적 문의 접수 - ${formData.companyName.trim()}`);
-      netlifyData.append('[한눈에 보는 견적 문의 요약]', summaryText);
 
       // 1. 고객 정보
       netlifyData.append('[고객 정보] 업체명', formData.companyName.trim());

@@ -7,10 +7,10 @@ interface KakaoChatButtonProps {
 }
 
 export const KakaoChatButton: React.FC<KakaoChatButtonProps> = ({
-  kakaoChannelUrl = 'http://pf.kakao.com/_CXxcmX',
+  kakaoChannelUrl = 'https://pf.kakao.com/_CXxcmX',
   onOpenConfig,
 }) => {
-  const targetUrl = (kakaoChannelUrl && kakaoChannelUrl.trim()) || 'http://pf.kakao.com/_CXxcmX';
+  const targetUrl = (kakaoChannelUrl && kakaoChannelUrl.trim()) || 'https://pf.kakao.com/_CXxcmX';
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();

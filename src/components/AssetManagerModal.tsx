@@ -233,7 +233,7 @@ export const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
               <div className="flex-1">
                 <span className="font-bold text-[#292532] block">카카오톡 채널 상담 링크</span>
                 <span className="text-[11px] text-[#777180]">
-                  {customAssets.kakaoChannelUrl || 'http://pf.kakao.com/_CXxcmX'}
+                  {customAssets.kakaoChannelUrl || 'https://pf.kakao.com/_CXxcmX'}
                 </span>
               </div>
             </div>
@@ -241,7 +241,7 @@ export const AssetManagerModal: React.FC<AssetManagerModalProps> = ({
             <div className="flex items-center gap-2">
               <input
                 type="text"
-                placeholder="http://pf.kakao.com/_CXxcmX"
+                placeholder="https://pf.kakao.com/_CXxcmX"
                 value={customAssets.kakaoChannelUrl || ''}
                 onChange={(e) => {
                   const updated = { ...customAssets, kakaoChannelUrl: e.target.value };

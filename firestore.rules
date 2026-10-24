@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isAuthenticated() && request.auth.token.email_verified == true;
+    }
+
+    // Server-enforced administrator verification
+    function isAdmin() {
+      return isEmailVerified() &&
+        (request.auth.token.email.lower() == 'rlawltn2232@gmail.com');
+    }
+
+    // Portfolio Archive (작업 사례)
+    // - get (단일 문서 조회): 관리자이거나, 문서가 존재하고 is_published, is_deleted 필드가 모두 안전하게 검증되어 공개 상태인 경우
+    // - list (컬렉션 쿼리): 관리자이거나, 클라이언트 쿼리 제약 조건(is_published == true && is_deleted == false)을 충족하는 경우
+    // - create, update, delete: 이메일 인증이 완료된 지정 관리자만 허용
+    match /portfolio/{documentId} {
+      allow get: if isAdmin() || (
+        resource != null &&
+        'is_published' in resource.data && resource.data.is_published == true &&
+        'is_deleted' in resource.data && resource.data.is_deleted == false
+      );
+
+      allow list: if isAdmin() || (
+        resource.data.is_published == true &&
+        resource.data.is_deleted == false
+      );
+
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Default catch-all: deny all other collections
+    // (미사용 content, settings, revisions 컬렉션을 포함한 모든 접근 기본 차단)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

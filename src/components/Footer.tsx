@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageTab } from '../types';
 import { BRAND_INFO } from '../data/content';
-import { MapPin, Copy, Check, Navigation, ExternalLink } from 'lucide-react';
+import { MapPin, Copy, Check, Navigation, ExternalLink, Lock } from 'lucide-react';
 
 interface FooterProps {
   onNavigate: (tab: PageTab) => void;
@@ -181,6 +181,13 @@ export const Footer: React.FC<FooterProps> = ({
               >
                 ⚙️ 로고 및 이미지 설정
               </button>
+              <button
+                onClick={() => onNavigate('admin')}
+                className="px-3 py-2 bg-[#F7F4FF] hover:bg-[#E9E1FF] text-[#514078] rounded border border-[#E8E3F0] text-[11px] font-medium text-left transition-colors flex items-center gap-1.5"
+              >
+                <Lock className="w-3.5 h-3.5 text-[#8B6CF6]" />
+                <span>관리자 로그인</span>
+              </button>
             </div>
           </div>
         </div>
@@ -206,6 +213,15 @@ export const Footer: React.FC<FooterProps> = ({
             >
               ares361@naver.com
             </a>
+            <span className="mx-2 text-[#E8E3F0]">|</span>
+            <button
+              onClick={() => onNavigate('admin')}
+              className="hover:text-[#8B6CF6] inline-flex items-center gap-1 font-mono transition-colors"
+              title="관리자 페이지 이동"
+            >
+              <Lock className="w-3 h-3 text-[#777180]" />
+              <span>관리자</span>
+            </button>
           </div>
           <div className="flex items-center gap-4">
             <span>아이돌 굿즈 포장 전문 서비스</span>
